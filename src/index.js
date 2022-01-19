@@ -4,13 +4,15 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-import TaskProvider from './store/task-context';
+import { Provider } from 'react-redux';
+
+import { store } from './redux/store';
 
 ReactDOM.render(
   <React.StrictMode>
-    <TaskProvider>
+    <Provider store={store}>
       <App />
-    </TaskProvider>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

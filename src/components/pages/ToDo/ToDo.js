@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { Col, Row, Card, Input, Form, Button, Drawer } from 'antd';
 
 import TaskList from './TaskList/TaskList';
 
-import { TaskContext } from '../../../store/task-context';
+import * as Types from '../../../constants/actionTypes';
 
-import { Col, Row, Card, Input, Form, Button } from 'antd';
 import classes from './ToDo.module.css';
 
 class ToDo extends Component {
-  static contextType = TaskContext;
+  taskFormRef = React.createRef();
 
   constructor() {
     super();
@@ -29,14 +30,18 @@ class ToDo extends Component {
   }
 
   submitHandler(values) {
-    this.context.addToList({
-      id: Math.random() * 1000,
-      ...values,
+    this.props.addTask({
+      data: values,
+      callback: {
+        clearFields: () => {
+          this.taskFormRef.current.resetFields();
+        },
+      },
     });
   }
 
   componentDidMount() {
-    this.context.getTaskList();
+    this.props.getTaskList();
   }
 
   render() {
@@ -51,6 +56,8 @@ class ToDo extends Component {
             <Row>
               <Col offset={2} span={20}>
                 <Form
+                  ref={this.taskFormRef}
+                  name="task-form"
                   labelCol={{ offset: 2, span: 4 }}
                   wrapperCol={{ offset: 1, span: 12 }}
                   onFinish={this.submitHandler}
@@ -93,7 +100,11 @@ class ToDo extends Component {
                       </Row>
                     </Col>
                     <Col span={12}>
-                      <Button type="primary" htmlType="submit">
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={this.props.actionLoading.addTask}
+                      >
                         Ok
                       </Button>
                     </Col>
@@ -112,4 +123,19 @@ class ToDo extends Component {
   }
 }
 
-export default ToDo;
+const mapStateToProps = state => {
+  const { taskList } = state;
+  return {
+    taskList: taskList.list,
+    actionLoading: taskList.actionLoading,
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    getTaskList: () => dispatch({ type: Types.GET_TASKS_REQUEST }),
+    addTask: task => dispatch({ type: Types.ADD_TASK_REQUEST, payload: task }),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ToDo);
